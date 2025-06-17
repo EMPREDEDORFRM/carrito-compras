@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<!--
+Autor: Samuel Raqui
+Fecha de creación: 15 de junio de 2025
+Versión: 1.0
+Descripción: Sistema de Carrito de Compras con diseño moderno, categorías, fotos, descripción en modal y envío a WhatsApp.
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrito de Compras</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f0f4f8;
+      color: #2c3e50;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #34495e;
+    }
+    .categoria {
+      margin: 20px 0;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .producto {
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 15px;
+      width: 240px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .producto:hover {
+      transform: scale(1.02);
+    }
+    .producto img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .producto h3 {
+      margin: 10px 0 5px;
+      font-size: 18px;
+      color: #2c3e50;
+    }
+    .producto strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 16px;
+      color: #27ae60;
+    }
+    .producto a {
+      display: inline-block;
+      margin: 5px 0;
+      font-size: 13px;
+      color: #2980b9;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .producto input {
+      margin-top: 5px;
+      width: 60px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    .producto button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .producto button:hover {
+      background-color: #2980b9;
+    }
+    #carrito, #resumen {
+      max-width: 700px;
+      margin: 30px auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+    }
+    .modal-content {
+      background: white;
+      margin: 15% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .close {
+      float: right;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .enviar {
+      display: block;
+      margin: 30px auto;
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .enviar:hover {
+      background-color: #27ae60;
+    }
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      font-size: 13px;
+      color: #7f8c8d;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tienda Virtual</h1>
+  <div id="productos"></div>
+
+  <h2>🛒 Carrito de Compras</h2>
+  <div id="carrito"></div>
+  <div id="resumen"></div>
+
+  <button class="enviar" onclick="enviarWhatsApp()">📲 Enviar pedido por WhatsApp</button>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarModal()">&times;</span>
+      <div id="modal-desc"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2025 - Samuel Raqui | Sistema de Carrito de Compras | Versión 1.0</p>
+  </footer>
+
+  <script>
+    const productos = [
+      { id: 1, nombre: 'Pan Granos y Semillas', precio: 8.90, descripcion: 'Pan delicioso y saludable, elaborado a base de harina fortificada con hierro y vitaminas del complejo B. Así mismo, contiene semillas altamente nutritivas por su valor funcional para el organismo humano como el girasol, ajonjolí y linaza. El pan es alto en Hierro, contiene fuente de fibra y fuente de proteínas del organismo.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/PAN-GRANOS-300x300.png', categoria: 'Panes' },
+      { id: 2, nombre: 'Pan Fibra Integral', precio: 8.90, descripcion: 'Delicioso y saludable pan, Libre de bromato y colesterol. Elaborado en base de harina integral fortificada y granos como la Quinua y la Cañihua. Así mismo, contiene una semilla altamente nutritiva y saludable como el ajonjolí. El pan es alto en Hierro, contiene fuente de fibra y fuente de proteínas del organismo.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/PAN-FIBRA-1-300x300.png', categoria: 'Panes' },
+      { id: 3, nombre: 'Pan Multisemillas con Avenas', precio: 9.30, descripcion: 'Delicioso y saludable pan, libre de bromato. Con una nutritiva mezcla en base a harina fortificada con hierro y vitaminas del complejo B, hojuelas de avena. Así mismo contiene semillas altamente nutritivas por su valor funcional para el organismo humano como el girasol, chía y linaza. El pan es alto en Hierro, contiene fuente de fibra y fuente de proteínas del organismo.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/PAN-AVENA-300x300.png', categoria: 'Panes' },
+      { id: 4, nombre: 'Pan Multisemillas con Miel de Abeja', precio: 9.50, descripcion: 'Delicioso y saludable pan con chispas de miel de abeja. Libre de bromato y colesterol. Elaborado en base de harina integral fortificada con hierro y vitaminas del complejo B. Así mismo, contiene semillas altamente nutritivas por su valor funcional para el organismo humano como el girasol, ajonjolí y Chía. El pan es alto en Hierro, contiene fuente de fibra y fuente de proteínas del organismo.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/PAN-MIEL-300x300.png', categoria: 'Panes' },
+      { id: 5, nombre: 'Mega Galleta de Kiwicha 195 g', precio: 5.10, descripcion: 'Energética y deliciosa galleta, elaborada en base a la mezcla de harina integral de Kiwicha especial fortificada con hierro.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/Galleta-int-kiw-300x300.png', categoria: 'Galletería' },
+      { id: 6, nombre: 'Mega Galleta de Naranja 195 g', precio: 5.10, descripcion: 'Deliciosa galleta sabor a Naranja, elaborada con harina especial fortificada con hierro y vitaminas del complejo B. Deliciosa al paladar por su textura y sabor tradicional.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/Galleta-nar-300x300.png', categoria: 'Galletería' },
+      { id: 7, nombre: 'Mega Galleta Integral de Coco 195 g', precio: 5.10, descripcion: 'Energética y deliciosa galleta, elaborada en base a la mezcla de harina integral especial fortificada con hierro y vitaminas del complejo B y coco rallado.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/Galleta-coco-int-2-300x300.png', categoria: 'Galletería' },
+      { id: 8, nombre: 'Mega Galleta Integral de Naranja 195 g', precio: 5.10, descripcion: 'Energética y deliciosa galleta sabor a Naranja, elaborada en base a la mezcla de harina integral especial fortificada con hierro y vitaminas del complejo B.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/Galleta-nar-int-300x300.png', categoria: 'Galletería' },
+      { id: 9, nombre: 'Granola con Granos Andinos 280 g', precio: 14.50, descripcion: 'Energético y delicioso preparado, elaborado a base de una mezcla de frutos secos, semillas y cereales altamente nutritivos. Contiene ajonjolí, linaza, maní, almendras, quinua y kañihua. Fortificada con Zinc y Magnesio.',imagen: 'https://www.union.pe/wp-content/uploads/2025/02/Granos-andinos-1-300x300.png', categoria: 'Cereales' },
+      { id: 10, nombre: 'Granola con Pasas y Almendras 400 g', precio: 15.20, descripcion: 'Energético y delicioso preparado, elaborado a base de una mezcla de cereales y frutos secos nutritivos. Contiene hojuelas de avena, ajonjolí, pasas y almendras. Fortificada con Zinc y Magnesio. Fuente de Fibra.',imagen: 'https://www.union.pe/wp-content/uploads/2025/02/Pasas-y-almendras-300x300.png', categoria: 'Cereales' },
+      { id: 11, nombre: 'Granola Loncheras 400 g', precio: 13.30, descripcion: 'Energético y delicioso preparado, elaborado a base de una mezcla de cereales y semillas nutritivas. Contiene hojuelas de avena, maní, ajonjolí y miel de abeja. Fortificada con Zinc y Magnesio. Fuente de Fibra y de proteínas.',imagen: 'https://www.union.pe/wp-content/uploads/2025/02/Miel-de-abeja-300x300.png', categoria: 'Cereales' },
+      { id: 12, nombre: 'Granola 270 g', precio: 12.50, descripcion: 'Energético y delicioso preparado, elaborado a base de una mezcla de cereales y semillas nutritivas. Contiene hojuelas de avena, con extruidos de Quinua, Cañihua y Arroz; Almendras y semillas de girasol linaza y chía. Fortificada con Zinc y Magnesio. Fuente de Fibra Dietética con fibra prebiótica y de proteínas.',imagen: 'https://www.union.pe/wp-content/uploads/2024/10/1200x1200-Granola-300x300.jpg', categoria: 'Cereales' },
+      { id: 13, nombre: 'Mantequilla de Mani 1 Kg', precio: 36.00, descripcion: 'Elaborado en base a puro maní, fruto seco rico en proteínas. Dos cucharas de este producto aportan el 10% del requerimiento diario de este nutriente. Contiene Omega 6 y 9.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/Mant.-mani-kg-300x300.png', categoria: 'Untables' },
+      { id: 14, nombre: 'Mantequilla de Mani Frasco 410 g', precio: 19.20, descripcion: 'Elaborado en base a puro maní, fruto seco rico en proteínas. Dos cucharas de este producto aportan el 10% del requerimiento diario de este nutriente. Contiene Omega 6 y 9.',imagen: 'https://www.union.pe/wp-content/uploads/2023/05/Mant.-mani-frasco-300x300.png', categoria: 'Untables' }
+    ];
+
+
+    const carrito = [];
+
+    const contenedorProductos = document.getElementById('productos');
+    const contenedorCarrito = document.getElementById('carrito');
+    const resumenDiv = document.getElementById('resumen');
+    const modal = document.getElementById('modal');
+    const modalDesc = document.getElementById('modal-desc');
+
+    const categorias = [...new Set(productos.map(p => p.categoria))];
+
+    categorias.forEach(cat => {
+      const divCat = document.createElement('div');
+      divCat.classList.add('categoria');
+      divCat.innerHTML = `<h2>${cat}</h2>`;
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+
+      productos
+        .filter(p => p.categoria === cat)
+        .forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'producto';
+          card.innerHTML = `
+            <img src="${p.imagen}" alt="${p.nombre}">
+            <h3>${p.nombre}</h3>
+            <a href="#" onclick="verDescripcion('${p.descripcion}'); return false;">Ver descripción</a>
+            <strong>S/ ${p.precio}</strong>
+            <input type="number" id="cantidad-${p.id}" value="1" min="1">
+            <button onclick="agregarAlCarrito(${p.id})">Agregar</button>
+          `;
+          grid.appendChild(card);
+        });
+
+      divCat.appendChild(grid);
+      contenedorProductos.appendChild(divCat);
+    });
+
+    function verDescripcion(texto) {
+      modalDesc.innerText = texto;
+      modal.style.display = 'block';
+    }
+
+    function cerrarModal() {
+      modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        cerrarModal();
+      }
+    }
+
+    function agregarAlCarrito(id) {
+      const producto = productos.find(p => p.id === id);
+      const cantidad = parseInt(document.getElementById(`cantidad-${id}`).value);
+      if (isNaN(cantidad) || cantidad <= 0) return alert("Cantidad inválida");
+
+      const item = carrito.find(i => i.id === id);
+      if (item) item.cantidad += cantidad;
+      else carrito.push({ ...producto, cantidad });
+
+      mostrarCarrito();
+    }
+
+    function mostrarCarrito() {
+      contenedorCarrito.innerHTML = '';
+      resumenDiv.innerHTML = '';
+
+      if (carrito.length === 0) {
+        contenedorCarrito.innerHTML = '<p>El carrito está vacío.</p>';
+        return;
+      }
+
+      let totalGeneral = 0;
+      let cantidadTotal = 0;
+
+      carrito.forEach(item => {
+        const div = document.createElement('div');
+        div.innerText = `${item.nombre} (${item.categoria}) x${item.cantidad} = S/ ${item.precio * item.cantidad}`;
+        contenedorCarrito.appendChild(div);
+      });
+
+      resumenDiv.innerHTML += `<h3>📊 Resumen por Categoría</h3>`;
+      categorias.forEach(cat => {
+        const itemsCat = carrito.filter(i => i.categoria === cat);
+        if (itemsCat.length > 0) {
+          const cantidad = itemsCat.reduce((sum, i) => sum + i.cantidad, 0);
+          const subtotal = itemsCat.reduce((sum, i) => sum + i.precio * i.cantidad, 0);
+          resumenDiv.innerHTML += `<p>${cat}: ${cantidad} productos - Total: S/ ${subtotal}</p>`;
+          totalGeneral += subtotal;
+          cantidadTotal += cantidad;
+        }
+      });
+
+      resumenDiv.innerHTML += `<h3>🔢 Totales Generales</h3><p>Productos: ${cantidadTotal}<br>Total: S/ ${totalGeneral}</p>`;
+    }
+
+    function enviarWhatsApp() {
+      if (carrito.length === 0) return alert("El carrito está vacío.");
+
+      const ahora = new Date();
+      const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
+      const opcionesHora = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+
+      const fecha = ahora.toLocaleDateString('es-PE', opcionesFecha);
+      const hora = ahora.toLocaleTimeString('es-PE', opcionesHora);
+
+      let mensaje = '*🛍️ Pedido desde tienda virtual:*\n\n';
+      mensaje += `📅 *Fecha del pedido:* ${fecha}\n⏰ *Hora:* ${hora}\n\n`;
+
+      let total = 0;
+      carrito.forEach(item => {
+        mensaje += `• ${item.nombre} (${item.categoria}) x${item.cantidad} = S/ ${item.precio * item.cantidad}\n`;
+        total += item.precio * item.cantidad;
+      });
+
+      mensaje += `\n*💵 Total: S/ ${total}*`;
+
+      const numero = '51999999999'; // ← Cambia por tu número de WhatsApp
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, '_blank');
+    }
+  </script>
+</body>
+</html>
